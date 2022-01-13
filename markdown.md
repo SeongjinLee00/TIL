@@ -33,6 +33,10 @@ def test():
 
 <img src="C:/Users/kys/Desktop/TIL/test.assets/IMG_1100.JPG">
 
+![](markdown.assets/IMG_1100.JPG)
+
+![](markdown.assets/IMG_1057.JPG)
+
 
 
 # 텍스트 강조
