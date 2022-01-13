@@ -31,7 +31,7 @@ def test():
 
 # 이미지
 
-<img src="C:/Users/kys/Desktop/TIL/test.assets/IMG_1100.JPG" alt="catcat" style="zoom: 10%;" />
+<img src="C:/Users/kys/Desktop/TIL/test.assets/IMG_1100.JPG">
 
 
 
