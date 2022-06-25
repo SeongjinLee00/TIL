@@ -71,3 +71,14 @@ def test():
 
 
 
+# 연습
+
+*Life is short, you need Python.*
+
+---
+
+> Life is short, you need Python.
+
+~~누가그랬냐~~
+
+**Python** python

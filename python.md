@@ -231,3 +231,86 @@ string interpolation 3개 일단 f가 제일 쉬움
 
 
 
+## TIL_0124
+
+함수의 아규먼트가 [ ] 일케 돼있으면 리스트 넣으란뜻x optional 이란 뜻임
+
+```python
+a=1,2,3 #(a,b,c)
+
+b,c,d=a #1,2,3
+```
+
+
+
+## TIL_0125
+
+.strip() 문자열을 지정하지 않으면 공백을 제거함
+
+' ' '\t' '\n' 모두 제거함
+
+```python
+a=(1) # 숫자 1
+a= 1, # 원소 한개짜리 튜플
+```
+
+
+
+## TIL_0126
+
+```python
+class MyClass:
+    #인스턴스 메서드 : 인스턴스를 조작하고싶어
+    #그니깐 인스턴스를 던져줘야지
+    #메서드를 정의할 때 self로 받도록
+    
+    def instance_method(self):
+        return self
+    
+    #클래스 메서드 : 클래스를 조작하고싶어
+    #그니깐 클래스를 던져줘야지
+    #메서드를 정의할 때 cls로 받도록
+    @classmethod
+    def class_method(cls):
+        print(cls.var)
+        return cls
+    
+    #스태틱 메서드 : 클래스나 인스턴스를 조작할 생각은 없는데 함수를 쓸거야
+    @staticmethod
+    def static_method():
+        return ''
+```
+
+
+
+## TIL_0127
+
+데코레이터 : 함수를 받아서 꾸미고 함수를 리턴
+
+```python
+def time_display_decorator(origin_func):
+    def decorated():
+        print(dt.now())
+        origin_func()
+        print('----')
+    return decorated
+@time_display_decorator
+def test_a():
+    print('test_a')
+@time_display_decorator
+def test_b():
+    print('test_b')
+test_a() # time_display_decorator(test_a)()
+        # time_display_decorator()
+test_b()
+```
+
+
+
+sum([int(i) for i in str(i)])
+
+이렇게 하면  i의 자리합을구할수있음
+
+
+
+if '666' in str(i) 이거 가능함 ㅋㅋ;;;
