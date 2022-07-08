@@ -1,5 +1,3 @@
-# TIL_0601
-
 
 
 분산저장(HDFS), 분산처리(MapReduce)
@@ -103,15 +101,3 @@ in-memory : 빠르지만, out of memory 발생 여지 높음
 RDD : Resilient Distributed Data/Dataframe/Dataset
 
 RDD의 연산은 transformation/action으로 나뉜다. transformation은 rdd를 변형하여 새로운 rdd 반환, 액션은 rdd의 각 요소를 이용해 어떤 결과값(스칼라)을 얻어내는 연산. transformation은 실제로 action이 실행되어야 평가된다(lazy evaluatation)
-
-
-
-**numpy** 
-
-서로 다른 크기의 배열에 연산 가능 : 브로드캐스팅
-
-**matplotlib**
-
-MATLAB style : 단순하고 편리함, MATLAB 사용자 친화적
-
-객체지향 style : 파이썬 프로그래머 친화적, 복잡하고 상세한 설정 가능

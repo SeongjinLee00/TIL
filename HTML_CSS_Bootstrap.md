@@ -431,3 +431,17 @@ Flex Item을 위한 속성들
 - `flex-basis` - Item의 기본 너비 설정
 ```
 
+
+
+  `<a href="/index/">뒤로</a>`
+
+/index/ 에서 앞의 슬래시 있으면 ip와 포트 뒤에서 맨처음 url부터 시작
+
+없으면 현재 있는 위치에서 (/greeting/index) 이런 식으로 붙여서 이동
+
+
+
+form에서 label for 값과 inpur id 값 통일시키면 라벨 클릭시 포커싱
+
+
+

@@ -1,3 +1,7 @@
+[TOC]
+
+
+
 ## Git 입문
 
 Git = 분산 버전 관리 시스템
@@ -54,7 +58,7 @@ git push -u 별명(관례상 origin) master
 
 
 
-# 0114 수업내용
+## 0114 수업내용
 
 git init 로컬 레포지토리 생성
 
@@ -84,5 +88,69 @@ git clone {}
 
 
 
-# Python Chatbot 맛보기
+Python Chatbot 맛보기
+
+
+
+
+
+## Git branch
+
+git branch : 브랜치 목록 확인
+
+git branch 브랜치이름 : 새로운 브랜치 생성
+
+git branch -d 브랜치이름 : 특정 브랜치 삭제(병합된 브랜치만)
+
+git branch -D 브랜치이름 : 병합 안되어있어도 삭제가능
+
+git branch 브랜치이름 : 다른 브랜치로 이동
+
+
+
+git log --oneline 라고만 치면 현재 브랜치의 로그를 보여줌
+
+모두 보고싶으면 git log --all --oneline
+
+가지를 보고싶으면 git log --all --oneline --graph
+
+
+
+git switch 브랜치이름 : 다른 브랜치로 이동
+
+git switch -c 브랜치이름 : 새로 생성과 동시에 이동
+
+
+
+git merge 브랜치이름
+
+merge 하기 전에 합치려고 하는(주로 master) 브랜치로 switch해야함
+
+merge가 된 브랜치는 역할이 끝났으니깐 삭제
+
+1. fast-forward : 기존 가지에서 나아간게 없는 경우
+2. 3-way merge : 일반적인 상황
+3. merge conflict : 서로 다른 브랜치에서 같은 파일의 같은 라인을 수정한 경우
+   - 이 경우 수정하고 그냥 git commit 하면 됨
+   - vim editor에서 esc : wq
+
+
+
+## TIL_0406
+
+git branch {name} : 생성
+
+git checkout {name} : 이동
+
+git checkout -b {name} : 브랜치 생성하며 이동(귀찮은 사람들을 위해)
+
+git branch : 브랜치 목록
+
+git branch -d {name} : 브랜치 삭제
+
+
+
+fast forward merge : 가리키던 포인터를 앞으로 땡기는거
+
+merge commit case : 진짜 합치는거
 

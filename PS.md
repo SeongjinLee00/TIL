@@ -1,6 +1,6 @@
 # Problem Solving
 
-2차원 리스트 transpose하거나, 열끼리 합 구할때
+**2차원 리스트 transpose하거나, 열끼리 합 구할때**
 
 `my_list=list(zip(*my_list))` 사용
 
@@ -92,3 +92,18 @@ for i in range(1<<n): # 2^n
 print()
 ```
 
+
+
+**사이클 판별**
+
+방향그래프의 사이클 판별은 DFS로 해야함
+
+무방향 그래프의 사이클은 유니온파인드로 가능, DFS/BFS로도 물론 가능.
+
+​									방향그래프				무방향그래프
+
+BFS/DFS                            O                                  O
+
+유니온파인드                    X                                   O
+
+위상정렬                            O                                  X
