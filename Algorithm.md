@@ -496,3 +496,8 @@ def topological_sort():
 topological_sort()
 ```
 
+
+
+### Euclidean & CRT
+
+![image-20220709200723177](Algorithm.assets/image-20220709200723177.png)
