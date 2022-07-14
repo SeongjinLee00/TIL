@@ -154,3 +154,4 @@ fast forward merge : 가리키던 포인터를 앞으로 땡기는거
 
 merge commit case : 진짜 합치는거
 
+ 

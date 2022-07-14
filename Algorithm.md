@@ -300,10 +300,10 @@ def merge_sort(arr):
 
 ```python
 def union(x,y):
-    a=find(x)
-    b=find(y)
+    a = find(x)
+    b = find(y)
 
-    parent[max(a,b)]=min(a,b)
+    parent[max(a,b)] = min(a,b)
 ```
 
 ```python
