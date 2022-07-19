@@ -309,7 +309,7 @@ Serializer 의 many=True 옵션, 단일객체 아니라 쿼리셋 줄 때
 
 다른 클래스에서 가져오면 read_only=True 
 
-
+test
 
 ## TIL_0517
 
