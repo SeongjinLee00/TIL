@@ -337,6 +337,28 @@ Rank 배열 사용하면 O(logN)
 
 
 
+### 다익스트라
+
+```python
+while cnt<V:
+    if not q:break
+    curr_travel, curr_location=heapq.heappop(q)
+    
+    if distances[curr_location]<curr_travel: # 우선순위 큐를 쓰니까, 앞에 긴 경로 빠지기 전에 뒤에 짧은경로가 힙으로 들어올 수 있음
+        continue
+    cnt+=1
+    for new_distance, new_destination in graph[curr_location]:
+
+        distance=curr_travel+new_distance
+        if distance<distances[new_destination]:
+            distances[new_destination]=distance
+            heapq.heappush(q,[distance,new_destination])
+```
+
+시간복잡도 아무리봐도 (ElogE+ElogE) 아닌가?
+
+
+
 ### 최소신장트리
 
 #### 1. 크루스칼 알고리즘
