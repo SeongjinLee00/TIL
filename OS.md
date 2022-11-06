@@ -191,6 +191,8 @@ Process is a program in execution
 
 
 
+**PCB**
+
 ![image-20220503124734937](OS.assets/image-20220503124734937.png)
 
 
@@ -256,6 +258,47 @@ Medium-term scheduler(swapper)
 커널쓰레드 vs 유저쓰레드
 
 
+
+# Chapter 4. Process Management
+
+1. 프로세스의 생성
+
+   ![image-20221025025229388](OS.assets/image-20221025025229388.png)
+
+- copy-on-write (COW)!
+  - 자식이 생성될 때 부모의 program counter register만 카피함
+  - 자식의 data가 변화하면 그 부분은 부모와 더 이상 공유하지 않음
+
+![image-20221025025640351](OS.assets/image-20221025025640351.png)
+
+
+
+2. 프로세스 종료
+
+   ![image-20221025025704068](OS.assets/image-20221025025704068.png)
+
+
+
+## fork() 시스템 콜
+
+```c
+int main() {
+  int pid;
+  pid = fork();
+  // A
+  if (pid == 0) {
+    	printf("\n Hello, I am child!\n");
+  } else if {
+    	printf("\n Hello, Iam parent!\n");
+  }
+}
+```
+
+- create a child (copy)
+- fork()를 통해 자식을 만들면, 자식은 주석 A 밑의 코드부터 실행함
+  - 부모 프로세스의 context를 복사했기 때문에 program counter가 가리키고 있는 부분 부터 실행됨
+- 부모와 자식을 구분하기 위해 fork() 실행 후의 반환 값이 다름
+  - 부모는 양수, 자식은 0을 가짐
 
 # Chapter 11. Disk Management and Scheduling
 
