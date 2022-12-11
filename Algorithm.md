@@ -518,6 +518,8 @@ def topological_sort():
 topological_sort()
 ```
 
+### SCC
+
 
 
 ### Euclidean & CRT
