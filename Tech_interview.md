@@ -210,6 +210,48 @@
 
 
 
+3. Thread-safe?
+
+   스레드 안전(thread 安全, 영어: thread safety)은 멀티 스레드 프로그래밍에서 일반적으로 어떤 함수나 변수, 혹은 객체가 여러 스레드로부터 동시에 접근이 이루어져도 프로그램의 실행에 문제가 없음을 뜻한다. 보다 엄밀하게는 하나의 함수가 한 스레드로부터 호출되어 실행 중일 때, 다른 스레드가 그 함수를 호출하여 동시에 함께 실행되더라도 각 스레드에서의 함수의 수행 결과가 올바로 나오는 것으로 정의한다.
+
+```python
+import threading
+
+x = 0  # A shared value
+
+def foo():
+    global x
+    for i in range(10000000):
+        x += 1
+
+def bar():
+    global x
+    for i in range(10000000):
+        x -= 1
+
+t1 = threading.Thread(target=foo)
+t2 = threading.Thread(target=bar)
+t1.start()
+t2.start()
+t1.join()
+t2.join()  # Wait for completion
+
+print(x)
+
+# 이 파이썬 코드의 실행 결과는 매번 다르다. 이는 파이썬이 GIL이 있음에도 불구하고 thread safe 하지 않음을 의미한다.
+# https://codingdog.tistory.com/entry/python-gil%EC%9D%B4-%EC%9E%88%EC%9C%BC%EB%8B%88%EA%B9%8C-thread-safe-%ED%95%A0%EA%B9%8C%EC%9A%94
+```
+
+
+
+4. 코루틴
+
+   코루틴은 서브 루틴을 일시 정지하고 재개할 수 있는 구성 요소를 말한다. 쉽게 말해 필요에 따라 일시 정지할 수 있는 함수를 말한다.
+
+
+
+
+
 제너레이터, 이터레이터, 코루틴, 함수형 프로그래밍
 
 

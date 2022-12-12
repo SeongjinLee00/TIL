@@ -142,7 +142,7 @@ Timer가 interrupt를 걸면, CPU를 뺐어서 다른 프로레스에 넘겨야�
 
 
 
-### OS 커널 주소 공간의 내용
+## OS 커널 주소 공간의 내용
 
 - code
 
@@ -180,7 +180,7 @@ Process is a program in execution
 
 ![image-20220503124153196](OS.assets/image-20220503124153196.png)
 
-프로세스의 상태
+## 프로세스의 상태
 
 1. Running : CPU를 잡고 instruction을 수행중인 상태
 2. Ready : CPU를 기다리는 상태(메모리 등 다른 조건을 모두 만족하고)
@@ -207,6 +207,19 @@ CPU를 한 프로세스에서 다른 프로세스로 넘겨주는 과정
 System call이나 Interrupt가 생긴다고 반드시 context switch가 일어나는 것은 아님. 물론 일부 context를 PCB에 저장하긴 해야한다고함
 
 Kernel mode 이후 프로세스가 바뀔때만 일어남(ex : timer interrupt, I/O 요청 system call). 이때는 캐시메모리를 날려야하므로 오버헤드가 크다
+
+
+
+**프로세스를 스케줄링하기 위한 큐**
+
+- Job queue
+  - 현재 시스템 내에 있는 모든 프로세스의 집합
+  - 다른 queue에 있는 프로세스 포함
+- Ready queue
+  - 현재 메모리 내에 있으면서 CPU를 잡아서 실행되기를 기다리는 프로세스의 집합
+- Device queue
+  - I/O device의 처리를 기다리는 프로세스의 집합
+- 프로세스들은 각 큐들을 오가며 수행됨
 
 
 
@@ -299,6 +312,510 @@ int main() {
   - 부모 프로세스의 context를 복사했기 때문에 program counter가 가리키고 있는 부분 부터 실행됨
 - 부모와 자식을 구분하기 위해 fork() 실행 후의 반환 값이 다름
   - 부모는 양수, 자식은 0을 가짐
+
+
+
+## exec() 시스템 콜
+
+```C
+int main() {
+  int pid;
+  pid = fork();
+  if (pid == 0) {
+    	printf("\n Hello, I am child! Now I'll run data \n");
+  		execlp("/bin/date", "/bin/date", (char *) 0);
+  } else if (pid > 0) {
+    	printf("\n Hello, I am parent!\n");
+  }
+}
+```
+
+- overlay new image
+
+- 자식이 date라는 프로그램으로 덮어씌워짐
+
+- 한 번 `exec()`을 하면 돌아올 수 없음
+
+- 반드시 자식을 만들고 `exec()`할 필요는 없음
+
+  ```C
+  int main() {
+      	printf("\n Hello, I am child! Now I'll run data \n");
+    		execlp("/bin/date", "/bin/date", (char *) 0);
+      	printf("\n Hello, I am parent!\n"); // 이 코드는 영원히 실행되지 않음
+  }
+  ```
+
+
+
+## wait() 시스템 콜
+
+![image-20220430185814288](OS.assets/image-20220430185814288.png)
+
+- 뭘 기달리길래 wait이냐? sleep until **child is done**
+- 프로세스 A가 wait() 시스템 콜을 호출하면
+  - 커널은 자식 프로세스가 종료될 때 까지 프로세스 A를 sleep 시킴 (block 상태)
+  - 자식 프로세스가 종료되면, 커널은 프로세스 A를 깨움 (ready 상태)
+- 리눅스의 쉘이 프로세스 A
+  - 커맨드에 다른 프로그램의 이름을 치면 자식 프로세스가 생성되고 `wait()` 시스템 콜
+  - 자식 프로세스가 끝나면 다시 커서가 깜빡거리며 새로운 커맨드를 입력받을 수 있게 됨
+
+
+
+## exit() 시스템 콜
+
+- frees all the resources, notify parent
+- 프로세스의 종료
+  - 자발적 종료(exit)
+    - 마지막 statement 수행 후 `exit()` 시스템 콜을 통해 종료
+    - 프로그램에 명시적으로 적어주지 않아도 `main` 함수가 리턴되는 위치에 컴파일러가 자동으로 넣어줌
+  - 비자발적 종료(abort)
+    - 부모 프로세스가 자식 프로세스를 강제 종료 시킴
+      - 자식 프로세스가 한계치를 넘어서는 리소스 요청
+      - 자식에게 할당된 태스크가 더 이상 필요하지 않음
+    - 키보드로 `kill, break` 등을 입력한 경우
+    - 부모 프로세스가 종료되는 경우
+      - 부모 프로세스가 종료되기 전에 자식 프로세스들이 먼저 종료됨
+
+
+
+## 프로세스 간의 협력
+
+- 독립적 프로세스 (Independent process)
+
+  - 프로세스는 각자의 주소 공간을 가지고 수행되므로 원칙적으로 하나의 프로세스는 다른 프로세스의 수행에 영향을 미치지 못함
+
+- 협력 프로세스 (Cooperating process)
+
+  - 프로세스 협력 메커니즘을 통해 하나의 프로세스가 다른 프로세스의 수행에 영향을 미칠 수 있음
+
+- 프로세스 간 협력 메커니즘 (IPC: Interprocess Communication)
+
+  ![image-20220430191105740](OS.assets/image-20220430191105740.png)
+
+  - 메세지를 전달하는 방법 (message passing)
+    - Message system
+      - 프로세스 사이에 공유 변수 (shared variable)를 일체 사용하지 않고 통신하는 시스템
+      - 메세지는 반드시 커널이 전달
+    - Direct Communication
+      - 통신하려는 프로세스의 이름을 명시적으로 표시
+    - Indirect Communication
+      - mailbox (또는 port)를 통해 메세지를 간접 전달
+  - 주소 공간을 공유하는 방법 (shared memory)
+    - 서로 다른 프로세스 간에도 일부 주소 공간을 공유하게 하는 shared memory 메커니즘이 있음
+    - thread의 경우 사실상 하나의 프로세스 내부에 존재하는 것이므로 프로세스 간 협력으로 보기는 어렵지만, 동일한 process를 구성하는 thread들 간에는 주소 공간을 공유하므로 협력이 가능
+
+
+
+# Chapter 5. CPU Scheduling
+
+Motivation : 어떤 프로그램이든 실행되면 CPU burst와 IO burst를 반복하게 됨
+
+- I/O bound job
+  - I/O burst가 많은 job
+    - CPU를 잡고 계산하는 시간보다, I/O에 많은 시간이 필요한 job
+  - many short CPU bursts
+- CPU bound job
+  - CPU만 길게 쓰는 프로그램
+    - 계산 위주의 job
+  - few very long CPU bursts
+- Interactive job에게 적절한 response 제공 요망
+  - CPU bound job이 CPU를 너무 오래 사용하면, I/O가 많이 필요한 Interactive job의 대기 시간이 길어짐
+
+
+
+**CPU Scheduler & Dispatcher**
+
+![image-20221108201753115](OS.assets/image-20221108201753115.png)
+
+쉽게말해서, scheduler는 누구에게 줄지 결정, dispatcher는 넘겨주는 역할을 수행
+
+
+
+nonpreemptive = 비선점형 = 한번 준 것을 빼앗지 않음
+
+preemptive = 선점형 = 강제로 빼앗음
+
+
+
+**Scheduling Criteria**
+
+CPU utilization, Throughput, Turnaround time, Waiting time, Response time
+
+
+
+## Scheduling Algorithms
+
+1. FCFS
+
+   **convoy effect** : 긴 프로세스가 먼저, 짧은 프로세스가 나중에 온경우 평균 대기시간이 길어짐
+
+
+
+2. (SJF) Shortest job first
+
+   각 프로세스와 다음번 CPU burst time을 가지고 스케쥴링에 활용
+
+   **Nonpreemptive**
+
+   - 일단 CPU를 잡으면 이번 CPU burst가 완료될 때 까지 CPU를 선점 당하지 않음
+
+   **Preemptive**
+
+   - 현재 수행중인 프로세스의 남은 burst time보다 더 짧은 CPU burst time을 가지는 새로운 프로세스가 도착하면 CPU를 빼앗김
+   - 이 방법을 **Shortest-Remainig-Time-First** (SRTF)라고도 부름
+     - SRTF는 주어진 프로세스들에 대해 minimum average waiting time을 보장
+
+   다음번 burst time을 예측하기 어려운 문제점이 있음
+
+![image-20221109055349835](OS.assets/image-20221109055349835.png)
+
+
+
+3. Priority Scheduling
+
+   Preemptive, nonpreemptive
+
+   starvation이 문제될 수 있고, aging으로 해결한다.
+
+
+
+4. Round Robin
+
+   할당 시간이 지나면 프로세스는 선점당하고(preemptive) ready queue 제일 뒤에 가서 다시 줄을 섬
+
+   빠른 response time, 느린 turnaround time
+
+
+
+5. Multilevel Queue
+
+   ready queue를 여러 개로 분할
+
+   system processes
+
+   interactive processes(RR이 적절)
+
+   interactive editing processes
+
+   batch processes(FCFS가 적절)
+
+   student processes
+
+   각 큐는 독립적인 스케줄링 알고리즘을 가짐
+
+   또한 큐에 대한 스케줄링이 필요(ex, Fixed Priority Scheduling, Time Slice)
+
+
+
+6. Multilevel Feedback Queue
+
+   Multilevel queue는 한 번 정해진 신분(priority)이 영원히 변하지 않는 문제가 있으므로 이를 개선함
+
+   - 프로세스는 처음에 맨 위의 큐에 들어감
+   - 할당시간이 끝나면 아래 큐로 내려감
+     - CPU 사용시간이 짧은 프로세스는 위쪽에서 빠져나감
+     - CPU 사용시간이 긴 프로세스는 점점 아래로 내려감
+   - 정의해야하는 파라미터
+     - Queue의 수
+     - 각 큐의 scheduling algorithm
+     - 프로세스를 상위/하위 큐로 보내는 기준
+     - 프로세스가 CPU 서비스를 받으려 할 때 들어갈 큐를 결정하는 기준
+
+
+
+### Multiple-Processor Scheduling
+
+- CPU가 여러 개인 경우 스케줄링은 더 복잡해짐
+- Homogeneous processor인 경우
+  - Queue에 한 줄로 세워서 각 프로세서가 알아서 꺼내가도록 할 수 있음
+  - 반드시 특정 프로세서에서 수행되어야 하는 프로세스가 있는 경우는 문제가 더 복잡해짐
+- Load sharing
+  - 일부 프로세서를 job이 몰리지 않도록 부하를 적절히 공유하는 메커니즘 필요
+  - 별개의 큐를 두는 방법
+  - 공동 큐를 사용하는 방법
+- Symmetric Multiprocessing (SMP)
+  - 각 프로세서가 각자 알아서 스케줄링 결정
+- Asymmetric multiprocessing
+  - 하나의 프로세서가 시스템 데이터의 접근과 공유를 책임지고 나머지 프로세서는 거기에 따름
+
+
+
+### Real-Time Scheduling
+
+- Hard real-time systems
+  - 정해진 시간 안에 반드시 끝내도록 스케줄링해야 함
+- Soft real-time computing
+  - 일반 프로세스에 비해 높은 우선 순위를 갖도록 해야 함
+
+
+
+### Thread Scheduling
+
+- Local Scheduling
+  - User level thread의 경우 OS가 thread의 존재를 모르므로 사용자 수준의 thread library에 의해 thread를 스케줄할지 결정
+- Global Scheduling
+  - Kernel level thread의 경우 일반 프로세스와 마찬가지로 커널의 단기 스케줄러가 어떤 thread를 스케줄할지 결정
+
+
+
+# Chapter 6. Process Synchronization
+
+![image-20221110030159253](OS.assets/image-20221110030159253.png)
+
+S-box : 메모리, 디스크, 그 프로세스의 주소공간
+
+E-box : CPU, 컴퓨터내부, 프로세스
+
+
+
+Multiprocessor system, Multiprocess system with 공유메모리
+
+
+
+OS에서 race condition은 언제 발생하는가?
+
+1. kernel 수행 중 인터럽트 발생 시
+2. Process가 system call을 하여 kernel mode로 수행중인데 context switch가 일어나는 경우
+3. Multiprocessor에서 shared memory 내의 kernel data
+
+
+
+![image-20221110032359242](OS.assets/image-20221110032359242.png)
+
+해결책 : Kernel 수행 중 Interrupt 들어올 경우 일단 무시, 나중에 인터럽트 처리 루틴 수행
+
+
+
+![image-20221110032709406](OS.assets/image-20221110032709406.png)
+
+![image-20221110033031944](OS.assets/image-20221110033031944.png)
+
+![image-20221110034546829](OS.assets/image-20221110034546829.png)
+
+
+
+
+
+
+
+![image-20221110034945072](OS.assets/image-20221110034945072.png)
+
+![image-20221110035322064](OS.assets/image-20221110035322064.png)
+
+
+
+### 프로그램적 해결법의 충족 조건!
+
+![image-20221110041754599](OS.assets/image-20221110041754599.png)
+
+
+
+
+
+![image-20221110045900129](OS.assets/image-20221110045900129.png)
+
+![image-20221110050033877](OS.assets/image-20221110050033877.png)
+
+![image-20221110055317643](OS.assets/image-20221110055317643.png)
+
+
+
+![image-20221110065514657](OS.assets/image-20221110065514657.png)
+
+
+
+## Semaphores
+
+앞의 방식들처럼 개발자가 락을 직접 구현하는건 비효율적, Semaphore는 앞의 방식을 추상화시킴
+
+(추상 자료형이란? : Object와 Operation으로 구성됨)
+
+![image-20221115015349987](OS.assets/image-20221115015349987.png)
+
+P 연산은 자원을 가져가는 과정, V 연산은 자원을 반납하는 과정
+
+P 연산에서도 busy waiting 문제는 생긴다...
+
+Semaphore는 정수값을 가질 수 있음, 자원의 갯수를 의미함.
+
+
+
+busy waiting(=spin lock)은 효율적이지 못함
+
+이를 개선하기 위해 세마포어를 block & wakeup(=sleep lock) 방식으로 구현 -> lock을 못 얻은 프로세스를 blocked로 만들기!
+
+![image-20221115020221905](OS.assets/image-20221115020221905.png)
+
+![image-20221115020446755](OS.assets/image-20221115020446755.png)
+
+V 연산 주의사항 : S 값을 빼고 잠들었기 때문에, S값이 0 이하라는건 기다리는 프로세스가 있음을 의미, 깨워줘야함
+
+S를 누군가를 깨워야 하는지 확인하기 위해 두는 변수라고 생각하면 조금 편함
+
+
+
+**Which is better?**
+
+일반적으로는 block/wakeup이 효율적
+
+critical section의 길이가 긴 경우 block/wakeup이 더욱 효율적
+
+critical section의 길이가 짧은 경우 block/wakeup overhead가 busy wait overhead보다 커질 수 있으므로 이 때는 busy wait가 나을수도?
+
+
+
+**Two Types of Semaphores**
+
+- Counting semaphore
+  - 도메인이 0 이상인 임의의 정수값
+  - 주로 resource counting에 사용
+- Binary semaphore (=mutex)
+  - 0 또는 1 값만 가질 수 있는 semaphore
+  - 주로 mutual exclusion (lock/unlock)에 사용
+
+
+
+![image-20221115021546774](OS.assets/image-20221115021546774.png)
+
+데드락의 해결법 : S와 Q를 얻는 순서를 통일시키면 해결됨
+
+
+
+## Classical Problems of Synchronization
+
+1. **Bounded-Buffer Problem(Producer-Consumer Problem)**
+
+![image-20221116211227883](OS.assets/image-20221116211227883.png)
+
+1) 두개 이상의 생산자/소비자가 동시에 같은 버퍼에 접근 가능하므로 mutual exclusion을 위해 -> binary semaphore가 필요
+
+2) buffer가 다 찬 경우/빈 경우가 생길 수 있으므로 가용 자원의 갯수를 세야 함 -> counting semaphore 필요
+
+![image-20221116212232932](OS.assets/image-20221116212232932.png)
+
+
+
+2. **Readers-Writers Problem**
+
+![image-20221116212645149](OS.assets/image-20221116212645149.png)
+
+![image-20221116220405706](OS.assets/image-20221116220405706.png)
+
+readcount는 공유변수이므로 problem 발생 가능하고, 이를 막기 위한 변수가 mutex
+
+
+
+Reader는 여러명도 접근 가능, 첫 번째 reader는 P(db)를 하고 들어오므로 writer는 접근할 수 없음
+
+Writer는 한 명씩만 접근 가능, writer가 P(db)를 하고 들어오므로 reader가 접근할 수 없음
+
+
+
+3. **Dining-Philosophers Problem**
+
+![image-20221118051047465](OS.assets/image-20221118051047465.png)
+
+아주 위험한 코드임. 예시로 모든 철학자가 왼쪽의 젓가락을 집은 경우 데드락이 발생할 수 있음
+
+ Solution
+
+- 4명의 철학자만이 테이블에 동시에 앉을 수 있도록 함
+- 젓가락을 두 개 모두 집을 수 있을 때에만 젓가락을 집을 수 있게 함 (아래의 코드)
+- 비대칭적으로, 짝수번째 철학자는 왼쪽 젓가락부터, 홀수번째 철학자는 오른쪽 젓가락부터 잡도록 함 (즉 같은 젓가락을!)
+
+![image-20221118051526517](OS.assets/image-20221118051526517.png)
+
+세마포어는 보통 1로 초기화를 하는데, 여기서는 0으로 초기화를 하고 test를 만족할때 1로 바꿔서 쓰는 코드라 이해가 약간 어려울 수 있음
+
+
+
+## Monitor
+
+![image-20221118053938524](OS.assets/image-20221118053938524.png)
+
+- Monitor는 동시 수행중인 프로세스 사이에서 abstract data type의 안전한 공유를 보장하기 위한 high-level synchronization construct
+- Monitor 내에서는 한 번에 하나의 프로세스만이 활동 가능
+- 프로그래머가 동기화 제약 조건을 명시적으로 코딩할 필요 없음
+- 프로세스가 모니터 안에서 기다릴 수 있도록 하기 위해 condition variable 사용
+  - condition variable은 wait와 signal 연산에 의해서만 접근 가능
+  - x.wait()을 invoke한 프로세스는 다른 프로세스가 x.signal()을 invoke하기 전까지 suspend됨
+  - x.signal()은 정확하게 하나의 suspend된 프로세스를 resume함
+    - suspend된 프로세스가 없으면 아무일도 일어나지 않음
+
+![image-20221120091800529](OS.assets/image-20221120091800529.png)
+
+락을 걸거나 풀 필요가 없어서 편리함
+
+
+
+![image-20221129080049490](OS.assets/image-20221129080049490.png)
+
+
+
+# Chapter 7. Deadlock
+
+![image-20221129160332690](OS.assets/image-20221129160332690.png)
+
+![image-20221129160438212](OS.assets/image-20221129160438212.png)
+
+deadlock 발생의 4가지 조건 : 상호배제, 비선점, 보유대기, 순환대기
+
+![image-20221129161052251](OS.assets/image-20221129161052251.png)
+
+
+
+## Deadlock의 처리 방법 4가지
+
+1. Deadlock Prevention
+   - 자원 할당 시 데드락의 4가지 필요 조건 중 어느 하나가 만족되지 않도록 하는 것
+   - 데드락을 원천적으로 막을 수 있지만, 자원을 비효율적으로 이용하게 됨
+     - Mutual Exclusion
+       - 공유해서는 안되는 자원의 경우 반드시 성립해야 함
+     - Hold and Wait
+       - 프로세스가 자원을 요청할 때 다른 어떤 자원도 가지고 있지 않아야 함
+         - 프로세스 시작 시 모든 필요한 자원을 할당받게 하는 방법
+           - 자원에 대한 비효율성
+         - 자원이 필요할 경우 보유 자원을 모두 놓고 다시 요청
+     - No preemption
+       - 프로세스가 어떤 자원을 기다려야 하는 경우 이미 보유한 자원이 선점됨
+       - 모든 필요한 자원을 얻을 수 있을 때 그 프로세스는 다시 시작됨
+       - state를 쉽게 save하고 restore할 수 있는 자원에서 주로 사용
+     - Circular Wait
+       - 모든 자원 유형에 할당 순서를 정하여 정해진 순서대로만 자원을 할당
+         - 예를 들어, 순서가 3인 자원R3을 보유 중인 프로세스가 순서가 1인 자원 R1을 할당 받기 위해서는 우선 R3을 release해야 함
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Chapter 11. Disk Management and Scheduling
 
