@@ -520,6 +520,12 @@ topological_sort()
 
 ### SCC
 
+코사라주 알고리즘
+
+
+
+### 세그먼트 트리
+
 
 
 ### Euclidean & CRT
